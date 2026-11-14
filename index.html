@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ಸಂಕಲ್ಪ ಲೈವ್ ಸ್ಟ್ರೀಮ್</title>
+  <title>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ (Free-to-Air)</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: #0b0f19; color: #f1f5f9; display: flex; flex-direction: column; min-height: 100vh; }
     header { background: #111827; padding: 14px 20px; border-bottom: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     header h1 { font-size: 1.2rem; color: #38bdf8; }
+    .badge { font-size: 0.75rem; background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 3px 8px; border-radius: 6px; margin-left: 8px; }
     .test-bar { display: flex; gap: 8px; flex: 1; max-width: 520px; }
     .test-bar input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 0.9rem; }
     .test-bar button { padding: 8px 14px; border-radius: 6px; border: none; background: #0284c7; color: #fff; font-weight: 600; cursor: pointer; }
@@ -23,25 +24,34 @@
     .status.live { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .status.loading { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     .status.error { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-    .sidebar { background: #111827; border-left: 1px solid #1f2937; display: flex; flex-direction: column; height: calc(100vh - 60px); }
+    .sidebar { background: #111827; border-left: 1px solid #1f2937; display: flex; flex-direction: column; height: calc(100vh - 105px); }
     .search-box { padding: 12px; border-bottom: 1px solid #1f2937; }
     .search-box input { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #fff; }
     .channel-list { overflow-y: auto; flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-    .channel-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 12px; background: #1f2937; border: 1px solid transparent; border-radius: 8px; color: #e2e8f0; cursor: pointer; font-size: 0.95rem; }
+    .channel-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; padding: 12px; background: #1f2937; border: 1px solid transparent; border-radius: 8px; color: #e2e8f0; cursor: pointer; font-size: 0.95rem; }
     .channel-btn:hover, .channel-btn:focus { background: #263142; border-color: #38bdf8; outline: none; }
     .channel-btn.active { background: #0c4a6e; border-color: #38bdf8; color: #fff; font-weight: 600; }
-    .channel-logo { width: 32px; height: 32px; border-radius: 6px; object-fit: contain; background: #0f172a; padding: 2px; flex-shrink: 0; }
+    .fta-tag { font-size: 0.7rem; background: #0f172a; color: #94a3b8; padding: 2px 6px; border-radius: 4px; }
+    footer { background: #0f172a; border-top: 1px solid #1f2937; padding: 10px 20px; font-size: 0.8rem; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    footer a { color: #38bdf8; text-decoration: none; cursor: pointer; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+    .modal-box { background: #111827; border: 1px solid #374151; border-radius: 10px; max-width: 440px; width: 100%; padding: 20px; }
+    .modal-box h3 { color: #38bdf8; margin-bottom: 10px; }
+    .modal-box p { font-size: 0.9rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 14px; }
+    .modal-box button { padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
     @media (max-width: 820px) {
       .main-container { grid-template-columns: 1fr; }
-      .sidebar { height: 50vh; border-left: none; border-top: 1px solid #1f2937; }
+      .sidebar { height: auto; max-height: 45vh; border-left: none; border-top: 1px solid #1f2937; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ</h1>
+    <div>
+      <h1>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ <span class="badge">100% FTA Safe</span></h1>
+    </div>
     <div class="test-bar">
-      <input type="text" id="customUrlInput" placeholder="ಯಾವುದೇ .m3u8 ಸ್ಟ್ರೀಮ್ ಲಿಂಕ್ ಇಲ್ಲಿ ಹಾಕಿ ಪರೀಕ್ಷಿಸಿ..." />
+      <input type="text" id="customUrlInput" placeholder="ನಿಮ್ಮ ಅಧಿಕೃತ .m3u8 ಲಿಂಕ್ ಇಲ್ಲಿ ಹಾಕಿ ಪರೀಕ್ಷಿಸಿ..." />
       <button onclick="playCustomUrl()">ಪ್ಲೇ ಮಾಡಿ</button>
     </div>
   </header>
@@ -65,38 +75,59 @@
     </aside>
   </div>
 
+  <footer>
+    <span>Disclaimer: ಇಲ್ಲಿರುವ ಎಲ್ಲಾ ಸ್ಟ್ರೀಮ್‌ಗಳು ಸಾರ್ವಜನಿಕವಾಗಿ ಲಭ್ಯವಿರುವ Free-to-Air ಫೀಡ್‌ಗಳಾಗಿವೆ; ಹಕ್ಕುಗಳು ಆಯಾ ಪ್ರಸಾರಕರಿಗೆ ಸೇರಿವೆ.</span>
+    <a onclick="toggleModal(true)">Copyright / Link Removal Request</a>
+  </footer>
+
+  <div class="modal" id="reportModal">
+    <div class="modal-box">
+      <h3>Copyright & Stream Removal</h3>
+      <p>ನೀವು ಯಾವುದೇ ಚಾನೆಲ್‌ನ ಅಧಿಕೃತ ಮಾಲೀಕರಾಗಿದ್ದು, ನಿಮ್ಮ ಸಾರ್ವಜನಿಕ ಫೀಡ್ ಲಿಂಕ್ ಅನ್ನು ಇಲ್ಲಿಂದ ತೆಗೆದುಹಾಕಲು ಬಯಸಿದರೆ ನಮಗೆ ಇಮೇಲ್ ಕಳುಹಿಸಿ. 24 ಗಂಟೆಗಳ ಒಳಗೆ ಆ ಲಿಂಕ್ ಅನ್ನು ತೆಗೆದುಹಾಕಲಾಗುತ್ತದೆ.</p>
+      <p><strong>Contact:</strong> contact@indoworkspace.in</p>
+      <button onclick="toggleModal(false)">ಮುಚ್ಚಿ (Close)</button>
+    </div>
+  </div>
+
   <script>
-    const PLAYLIST_URL = 'https://iptv-org.github.io/iptv/languages/kan.m3u';
-    const DEFAULT_CHANNELS = [
+    // Kevala verified Free-to-Air mattu test streams mathra illi ide
+    const VERIFIED_FREE_CHANNELS = [
       {
         name: 'ಸಂಕಲ್ಪ ಎಚ್‌ಡಿ ಟೆಸ್ಟ್ ಸ್ಟ್ರೀಮ್',
         url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-        logo: ''
+        tag: 'TEST HD'
+      },
+      {
+        name: 'ಡಿಡಿ ಚಂದನ (DD Chandana)',
+        url: 'https://d3ey4dbjkt2f6s.cloudfront.net/transcode/1605875021388/playlist.m3u8',
+        tag: 'GOVT FTA'
+      },
+      {
+        name: 'ಟಿವಿ9 ಕನ್ನಡ (TV9 Kannada)',
+        url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/tv9-kannada/main.m3u8',
+        tag: 'NEWS FTA'
+      },
+      {
+        name: 'ಪಬ್ಲಿಕ್ ಟಿವಿ (Public TV)',
+        url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/public-tv/main.m3u8',
+        tag: 'NEWS FTA'
+      },
+      {
+        name: 'ಸುವರ್ಣ ನ್ಯೂಸ್ (Suvarna News)',
+        url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/asianet-suvarna-news/main.m3u8',
+        tag: 'NEWS FTA'
+      },
+      {
+        name: 'ನ್ಯೂಸ್18 ಕನ್ನಡ (News18 Kannada)',
+        url: 'https://nw18live.cdn.jio.com/bpk-tv/News18_Kannada_NW18_MOB/output01/index.m3u8',
+        tag: 'NEWS FTA'
       }
     ];
 
-    let allChannels = [...DEFAULT_CHANNELS];
     let hlsInstance = null;
 
-    function parseM3U(m3uText) {
-      const lines = m3uText.split('\n');
-      const parsed = [];
-      let current = null;
-
-      for (const raw of lines) {
-        const line = raw.trim();
-        if (line.startsWith('#EXTINF:')) {
-          const parts = line.split(',');
-          const name = parts.length > 1 ? parts[parts.length - 1].trim() : 'ಲೈವ್ ಚಾನೆಲ್';
-          const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-          current = { name, logo: logoMatch ? logoMatch[1] : '' };
-        } else if (line && !line.startsWith('#') && current) {
-          current.url = line;
-          parsed.push(current);
-          current = null;
-        }
-      }
-      return parsed;
+    function toggleModal(show) {
+      document.getElementById('reportModal').style.display = show ? 'flex' : 'none';
     }
 
     function renderChannels(channels) {
@@ -113,17 +144,15 @@
         btn.className = 'channel-btn';
         btn.onclick = () => playStream(ch.url, ch.name, btn);
 
-        if (ch.logo) {
-          const img = document.createElement('img');
-          img.src = ch.logo;
-          img.className = 'channel-logo';
-          img.onerror = () => { img.style.display = 'none'; };
-          btn.appendChild(img);
-        }
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = ch.name;
 
-        const span = document.createElement('span');
-        span.textContent = ch.name;
-        btn.appendChild(span);
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'fta-tag';
+        tagSpan.textContent = ch.tag;
+
+        btn.appendChild(nameSpan);
+        btn.appendChild(tagSpan);
         listEl.appendChild(btn);
 
         if (index === 0 && !hlsInstance) {
@@ -134,7 +163,7 @@
 
     function filterChannels() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(q));
+      const filtered = VERIFIED_FREE_CHANNELS.filter(ch => ch.name.toLowerCase().includes(q));
       renderChannels(filtered);
     }
 
@@ -174,7 +203,7 @@
 
         hlsInstance.on(Hls.Events.ERROR, (event, data) => {
           if (data.fatal) {
-            status.textContent = 'ಈ ಸ್ಟ್ರೀಮ್ ಸದ್ಯಕ್ಕೆ ಲಭ್ಯವಿಲ್ಲ ಅಥವಾ ಬ್ರೌಸರ್ ನಿರ್ಬಂಧವಿದೆ. ಬೇರೆ ಚಾನೆಲ್ ಆಯ್ಕೆ ಮಾಡಿ.';
+            status.textContent = 'ಈ ಸ್ಟ್ರೀಮ್ ಸದ್ಯಕ್ಕೆ ಆಫ್‌ಲೈನ್ ಇದೆ. ಬೇರೆ ಚಾನೆಲ್ ಆಯ್ಕೆ ಮಾಡಿ.';
             status.className = 'status error';
           }
         });
@@ -191,24 +220,7 @@
       }
     }
 
-    async function init() {
-      renderChannels(allChannels);
-      try {
-        const res = await fetch(PLAYLIST_URL);
-        if (res.ok) {
-          const text = await res.text();
-          const fetched = parseM3U(text);
-          if (fetched.length > 0) {
-            allChannels = [...DEFAULT_CHANNELS, ...fetched];
-            renderChannels(allChannels);
-          }
-        }
-      } catch (err) {
-        console.warn('ಪಬ್ಲಿಕ್ ಪ್ಲೇಲಿಸ್ಟ್ ಲೋಡ್ ಆಗಲಿಲ್ಲ:', err);
-      }
-    }
-
-    init();
+    renderChannels(VERIFIED_FREE_CHANNELS);
   </script>
 </body>
 </html>
