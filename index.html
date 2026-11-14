@@ -5,26 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: #090d16; color: #f1f5f9; display: flex; flex-direction: column; min-height: 100vh; }
     header { background: #111827; padding: 14px 20px; border-bottom: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
     .brand { display: flex; align-items: center; gap: 10px; }
     .brand h1 { font-size: 1.25rem; color: #38bdf8; letter-spacing: 0.3px; }
-    .live-pill { font-size: 0.72rem; background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); padding: 3px 9px; border-radius: 999px; font-weight: 700; }
+    .live-pill { font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 9px; border-radius: 999px; font-weight: 700; }
     .header-meta { font-size: 0.85rem; color: #94a3b8; }
     .main-container { display: grid; grid-template-columns: 1fr 360px; flex: 1; }
     .player-section { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
     .video-wrapper { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
-    video, iframe { width: 100%; height: 100%; border: none; display: block; }
+    video, #ytWrapper, #ytWrapper iframe { width: 100%; height: 100%; border: none; display: block; }
     video { object-fit: contain; }
-    #ytFrame { display: none; }
+    #ytWrapper { display: none; }
     .info-bar { background: #111827; padding: 12px 16px; border-radius: 10px; border: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .now-playing { display: flex; align-items: center; gap: 10px; }
     .ch-number { background: #0c4a6e; color: #38bdf8; font-weight: 700; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; }
     .controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .nav-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #e2e8f0; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
+    .nav-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #e2e8f0; font-size: 0.85rem; cursor: pointer; font-weight: 600; text-decoration: none; }
     .nav-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .yt-direct-btn { display: none; padding: 6px 12px; border-radius: 6px; background: #dc2626; color: #fff; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+    .yt-direct-btn:hover { background: #b91c1c; }
     .status { font-size: 0.82rem; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
     .status.live { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .status.loading { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
@@ -56,7 +59,7 @@
   <header>
     <div class="brand">
       <h1>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ</h1>
-      <span class="live-pill">● 24/7 LIVE</span>
+      <span class="live-pill">● AUTO-SWITCH</span>
     </div>
     <span class="header-meta">ಉಚಿತ ಕನ್ನಡ &amp; ಎಚ್‌ಡಿ ಲೈವ್ ಚಾನೆಲ್‌ಗಳು</span>
   </header>
@@ -65,7 +68,7 @@
     <div class="player-section">
       <div class="video-wrapper">
         <video id="videoPlayer" controls muted autoplay playsinline></video>
-        <iframe id="ytFrame" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        <div id="ytWrapper"></div>
       </div>
 
       <div class="info-bar">
@@ -75,6 +78,7 @@
         </div>
         <div class="controls-right">
           <span id="streamStatus" class="status loading">ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ</span>
+          <a id="ytDirectBtn" class="yt-direct-btn" href="#" target="_blank" rel="noopener noreferrer">YouTube ನಲ್ಲಿ ನೋಡಿ ↗</a>
           <button type="button" class="nav-btn" onclick="switchChannel(-1)">⏮ ಹಿಂದಿನ</button>
           <button type="button" class="nav-btn" onclick="switchChannel(1)">ಮುಂದಿನ ⏭</button>
         </div>
@@ -86,9 +90,9 @@
         <input type="search" id="channelFilterBox" autocomplete="off" placeholder="ಚಾನೆಲ್ ಹುಡುಕಿ..." oninput="renderChannels()" />
         <div class="cat-tabs" id="catTabs">
           <button type="button" class="cat-btn active" onclick="setCategory('ಎಲ್ಲಾ', this)">ಎಲ್ಲಾ</button>
-          <button type="button" class="cat-btn" onclick="setCategory('ಸುದ್ದಿ', this)">ಸುದ್ದಿ</button>
           <button type="button" class="cat-btn" onclick="setCategory('ಮನರಂಜನೆ', this)">ಮನರಂಜನೆ</button>
-          <button type="button" class="cat-btn" onclick="setCategory('ಸಿನಿಮಾ & ಅನಿಮೇಷನ್', this)">ಸಿನಿಮಾ</button>
+          <button type="button" class="cat-btn" onclick="setCategory('ಸಿನಿಮಾ', this)">ಸಿನಿಮಾ</button>
+          <button type="button" class="cat-btn" onclick="setCategory('ಸುದ್ದಿ', this)">ಸುದ್ದಿ</button>
         </div>
       </div>
       <div class="channel-list" id="channelList"></div>
@@ -101,56 +105,74 @@
   </footer>
 
   <script>
-    // ಎಲ್ಲಾ ಚಾನೆಲ್‌ಗಳ ಲೈವ್ ಲಿಂಕ್‌ಗಳನ್ನು ನೇರವಾಗಿ ಇಲ್ಲಿಯೇ ಜೋಡಿಸಲಾಗಿದೆ
     const CHANNELS = [
-      {
-        name: 'ಟಿವಿ9 ಕನ್ನಡ (TV9 Kannada)',
-        category: 'ಸುದ್ದಿ',
-        url: 'https://www.youtube.com/embed/live_stream?channel=UC8dnBi4WUErqYQHZ4PfsLTg'
-      },
-      {
-        name: 'ಪಬ್ಲಿಕ್ ಟಿವಿ (Public TV)',
-        category: 'ಸುದ್ದಿ',
-        url: 'https://www.youtube.com/embed/live_stream?channel=UCl-OodciBGZ0k8K8rBZGe4w'
-      },
-      {
-        name: 'ಏಷ್ಯಾನೆಟ್ ಸುವರ್ಣ ನ್ಯೂಸ್ (Suvarna News)',
-        category: 'ಸುದ್ದಿ',
-        url: 'https://www.youtube.com/embed/live_stream?channel=UCjElJyiXmQXnWmceQ1JyKrA'
-      },
-      {
-        name: 'ನ್ಯೂಸ್18 ಕನ್ನಡ (News18 Kannada)',
-        category: 'ಸುದ್ದಿ',
-        url: 'https://www.youtube.com/embed/live_stream?channel=UCa-vioGhe2btBcZneaPonKA'
-      },
+      // 100% Embed-Free ಎಚ್‌ಡಿ ಲೈವ್ ಸ್ಟ್ರೀಮ್‌ಗಳು (ತಕ್ಷಣ ಪ್ಲೇ ಆಗುತ್ತವೆ)
       {
         name: 'ಸಂಕಲ್ಪ ಎಚ್‌ಡಿ ಲೈವ್ (Sankalpa HD)',
         category: 'ಮನರಂಜನೆ',
+        type: 'hls',
         url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
       },
       {
         name: 'ಸಂಕಲ್ಪ ಸಿನಿಮಾ ಎಚ್‌ಡಿ (Tears of Steel)',
-        category: 'ಸಿನಿಮಾ & ಅನಿಮೇಷನ್',
+        category: 'ಸಿನಿಮಾ',
+        type: 'hls',
         url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
       },
       {
         name: 'ಸಂಕಲ್ಪ ಅನಿಮೇಷನ್ ಎಚ್‌ಡಿ (Sintel HD)',
-        category: 'ಸಿನಿಮಾ & ಅನಿಮೇಷನ್',
+        category: 'ಸಿನಿಮಾ',
+        type: 'hls',
         url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
       },
       {
-        name: 'ಸಂಕಲ್ಪ ಲೈವ್ ಸ್ಟ್ರೀಮ್ 8 (Apple HD)',
+        name: 'ಸಂಕಲ್ಪ ಲೈವ್ 4 (Apple HLS HD)',
         category: 'ಮನರಂಜನೆ',
+        type: 'hls',
         url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8'
+      },
+      // ಕನ್ನಡ YouTube ಲೈವ್ ಚಾನೆಲ್‌ಗಳು (ಎಂಬೆಡ್ ನಿರ್ಬಂಧವಿದ್ದರೆ ತಾನಾಗಿಯೇ ಮುಂದಿನ ಚಾನೆಲ್‌ಗೆ ಬದಲಾಗುತ್ತದೆ)
+      {
+        name: 'ಟಿವಿ9 ಕನ್ನಡ (TV9 Kannada)',
+        category: 'ಸುದ್ದಿ',
+        type: 'yt-channel',
+        channelId: 'UC8dnBi4WUErqYQHZ4PfsLTg',
+        watchUrl: 'https://www.youtube.com/@tv9kannada/live'
+      },
+      {
+        name: 'ಪಬ್ಲಿಕ್ ಟಿವಿ (Public TV)',
+        category: 'ಸುದ್ದಿ',
+        type: 'yt-channel',
+        channelId: 'UCl-OodciBGZ0k8K8rBZGe4w',
+        watchUrl: 'https://www.youtube.com/@publictv/live'
+      },
+      {
+        name: 'ಏಷ್ಯಾನೆಟ್ ಸುವರ್ಣ ನ್ಯೂಸ್ (Suvarna News)',
+        category: 'ಸುದ್ದಿ',
+        type: 'yt-channel',
+        channelId: 'UCjElJyiXmQXnWmceQ1JyKrA',
+        watchUrl: 'https://www.youtube.com/@AsianetSuvarnaNews/live'
+      },
+      {
+        name: 'ನ್ಯೂಸ್18 ಕನ್ನಡ (News18 Kannada)',
+        category: 'ಸುದ್ದಿ',
+        type: 'yt-channel',
+        channelId: 'UCa-vioGhe2btBcZneaPonKA',
+        watchUrl: 'https://www.youtube.com/@News18Kannada/live'
       }
     ];
 
     let currentIndex = 0;
     let activeCategory = 'ಎಲ್ಲಾ';
     let hlsInstance = null;
+    let ytPlayerInstance = null;
     let stallTimer = null;
     let switchTimer = null;
     let failedIndices = new Set();
+
+    function onYouTubeIframeAPIReady() {
+      // YouTube API ಸಿದ್ಧವಾಗಿದೆ
+    }
 
     function setCategory(cat, btnEl) {
       activeCategory = cat;
@@ -240,9 +262,28 @@
       }, 1500);
     }
 
+    function cleanupPlayers() {
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+      if (ytPlayerInstance && typeof ytPlayerInstance.destroy === 'function') {
+        try { ytPlayerInstance.destroy(); } catch (e) {}
+        ytPlayerInstance = null;
+      }
+      const video = document.getElementById('videoPlayer');
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+
+      const ytWrapper = document.getElementById('ytWrapper');
+      ytWrapper.innerHTML = '';
+    }
+
     function selectChannel(index, userInitiated) {
       clearTimeout(stallTimer);
       clearTimeout(switchTimer);
+      cleanupPlayers();
 
       const ch = CHANNELS[index];
       if (!ch) return;
@@ -251,38 +292,68 @@
       renderChannels();
 
       const video = document.getElementById('videoPlayer');
-      const ytFrame = document.getElementById('ytFrame');
+      const ytWrapper = document.getElementById('ytWrapper');
       const status = document.getElementById('streamStatus');
       const title = document.getElementById('nowPlayingTitle');
       const numBadge = document.getElementById('nowPlayingNumber');
+      const ytDirectBtn = document.getElementById('ytDirectBtn');
 
       numBadge.textContent = 'CH ' + String(index + 1).padStart(2, '0');
       title.textContent = ch.name;
       status.textContent = 'ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ...';
       status.className = 'status loading';
 
-      if (hlsInstance) {
-        hlsInstance.destroy();
-        hlsInstance = null;
+      if (ch.watchUrl) {
+        ytDirectBtn.href = ch.watchUrl;
+        ytDirectBtn.style.display = 'inline-block';
+      } else {
+        ytDirectBtn.style.display = 'none';
       }
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      ytFrame.src = 'about:blank';
 
-      if (ch.url.includes('youtube.com/embed/')) {
+      if (ch.type === 'yt-channel') {
         video.style.display = 'none';
-        ytFrame.style.display = 'block';
+        ytWrapper.style.display = 'block';
+
+        const iframe = document.createElement('iframe');
         const muteParam = userInitiated ? '0' : '1';
-        const sep = ch.url.includes('?') ? '&' : '?';
-        ytFrame.src = ch.url + sep + 'autoplay=1&mute=' + muteParam + '&rel=0';
-        status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ';
-        status.className = 'status live';
-        failedIndices.clear();
+        const originParam = window.location.protocol.startsWith('http')
+          ? '&origin=' + encodeURIComponent(window.location.origin)
+          : '';
+        iframe.src =
+          'https://www.youtube.com/embed/live_stream?channel=' +
+          encodeURIComponent(ch.channelId) +
+          '&enablejsapi=1&autoplay=1&mute=' + muteParam + '&rel=0' + originParam;
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+        ytWrapper.appendChild(iframe);
+
+        // 7 ಸೆಕೆಂಡ್‌ನಲ್ಲಿ YouTube ಲೈವ್ ಆರಂಭವಾಗದಿದ್ದರೆ ಆಟೋ-ಸ್ವಿಚ್
+        stallTimer = setTimeout(() => {
+          handleStreamFailure('ಚಾನೆಲ್ ಎಂಬೆಡ್ ನಿರ್ಬಂಧ');
+        }, 7000);
+
+        if (window.YT && window.YT.Player) {
+          ytPlayerInstance = new window.YT.Player(iframe, {
+            events: {
+              onStateChange: (event) => {
+                if (event.data === window.YT.PlayerState.PLAYING) {
+                  clearTimeout(stallTimer);
+                  failedIndices.clear();
+                  status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ';
+                  status.className = 'status live';
+                }
+              },
+              onError: () => {
+                handleStreamFailure('YouTube ಎಂಬೆಡ್ ನಿರ್ಬಂಧ');
+              }
+            }
+          });
+        }
         return;
       }
 
-      ytFrame.style.display = 'none';
+      ytWrapper.style.display = 'none';
       video.style.display = 'block';
       video.muted = !userInitiated;
 
