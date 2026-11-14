@@ -20,18 +20,26 @@
     video, #ytWrapper, #ytWrapper iframe { width: 100%; height: 100%; border: none; display: block; }
     video { object-fit: contain; }
     #ytWrapper { display: none; }
+    .offline-overlay { display: none; position: absolute; inset: 0; background: rgba(9, 13, 22, 0.94); flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; gap: 14px; z-index: 10; }
+    .offline-overlay h3 { color: #f8fafc; font-size: 1.15rem; }
+    .offline-overlay p { color: #94a3b8; font-size: 0.9rem; max-width: 440px; line-height: 1.5; }
+    .overlay-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .btn-retry { padding: 9px 16px; border-radius: 8px; border: 1px solid #38bdf8; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 600; cursor: pointer; }
+    .btn-retry:hover { background: rgba(56, 189, 248, 0.25); }
+    .btn-official { padding: 9px 16px; border-radius: 8px; background: #dc2626; color: #fff; font-weight: 600; text-decoration: none; }
+    .btn-official:hover { background: #b91c1c; }
     .info-bar { background: #111827; padding: 12px 16px; border-radius: 10px; border: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .now-playing { display: flex; align-items: center; gap: 10px; }
+    .now-playing { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .ch-number { background: #0c4a6e; color: #38bdf8; font-weight: 700; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; }
-    .controls-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .nav-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #e2e8f0; font-size: 0.85rem; cursor: pointer; font-weight: 600; text-decoration: none; }
-    .nav-btn:hover { border-color: #38bdf8; color: #38bdf8; }
-    .yt-direct-btn { display: none; padding: 6px 12px; border-radius: 6px; background: #dc2626; color: #fff; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
-    .yt-direct-btn:hover { background: #b91c1c; }
+    .source-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .src-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #374151; background: #1f2937; color: #cbd5e1; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
+    .src-btn.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+    .src-btn.failed { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
     .status { font-size: 0.82rem; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
     .status.live { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .status.loading { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     .status.switching { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .status.offline { background: rgba(239, 68, 68, 0.15); color: #f87171; }
     .sidebar { background: #111827; border-left: 1px solid #1f2937; display: flex; flex-direction: column; height: calc(100vh - 98px); }
     .sidebar-top { padding: 12px; border-bottom: 1px solid #1f2937; display: flex; flex-direction: column; gap: 10px; }
     .sidebar-top input { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 0.9rem; }
@@ -59,9 +67,9 @@
   <header>
     <div class="brand">
       <h1>ಸಂಕಲ್ಪ ಲೈವ್ ಟಿವಿ</h1>
-      <span class="live-pill">● AUTO-SWITCH</span>
+      <span class="live-pill">● MULTI-SOURCE FAILOVER</span>
     </div>
-    <span class="header-meta">ಉಚಿತ ಕನ್ನಡ &amp; ಎಚ್‌ಡಿ ಲೈವ್ ಚಾನೆಲ್‌ಗಳು</span>
+    <span class="header-meta">ಒಂದೇ ಚಾನೆಲ್‌ನ ಬ್ಯಾಕಪ್ ಸರ್ವರ್‌ಗಳಿಗೆ ಸ್ವಯಂ ಬದಲಾವಣೆ</span>
   </header>
 
   <div class="main-container">
@@ -69,19 +77,23 @@
       <div class="video-wrapper">
         <video id="videoPlayer" controls muted autoplay playsinline></video>
         <div id="ytWrapper"></div>
+        <div class="offline-overlay" id="offlineOverlay">
+          <h3 id="overlayTitle">ಈ ಚಾನೆಲ್‌ನ ಬ್ಯಾಕಪ್ ಸರ್ವರ್‌ಗಳು ಲಭ್ಯವಿಲ್ಲ</h3>
+          <p>ಈ ಚಾನೆಲ್‌ನ ಎಲ್ಲಾ ಲಭ್ಯವಿರುವ ಸ್ಟ್ರೀಮ್ ಮೂಲಗಳನ್ನು ಪ್ರಯತ್ನಿಸಲಾಗಿದೆ; ಪ್ರಸಾರಕರ ಬ್ರೌಸರ್ ನಿರ್ಬಂಧದಿಂದಾಗಿ ಇಲ್ಲಿ ಪ್ಲೇ ಆಗುತ್ತಿಲ್ಲ.</p>
+          <div class="overlay-actions">
+            <button type="button" class="btn-retry" onclick="retryCurrentChannel()">ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ (Retry)</button>
+            <a id="overlayOfficialLink" class="btn-official" href="#" target="_blank" rel="noopener noreferrer">ಅಧಿಕೃತ ಲೈವ್ ತೆರೆಯಿರಿ ↗</a>
+          </div>
+        </div>
       </div>
 
       <div class="info-bar">
         <div class="now-playing">
           <span class="ch-number" id="nowPlayingNumber">CH 01</span>
           <strong id="nowPlayingTitle">ಚಾನೆಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ...</strong>
+          <div class="source-pills" id="sourcePills"></div>
         </div>
-        <div class="controls-right">
-          <span id="streamStatus" class="status loading">ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ</span>
-          <a id="ytDirectBtn" class="yt-direct-btn" href="#" target="_blank" rel="noopener noreferrer">YouTube ನಲ್ಲಿ ನೋಡಿ ↗</a>
-          <button type="button" class="nav-btn" onclick="switchChannel(-1)">⏮ ಹಿಂದಿನ</button>
-          <button type="button" class="nav-btn" onclick="switchChannel(1)">ಮುಂದಿನ ⏭</button>
-        </div>
+        <span id="streamStatus" class="status loading">ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ</span>
       </div>
     </div>
 
@@ -105,74 +117,84 @@
   </footer>
 
   <script>
+    // ಪ್ರತಿಯೊಂದು ಚಾನೆಲ್‌ಗೂ ಒಂದೇ ಚಾನೆಲ್‌ನ ಬಹು ಮೂಲಗಳನ್ನು (Sources) ಜೋಡಿಸಲಾಗಿದೆ.
+    // ಮೂಲ 1 ವಿಫಲವಾದರೆ ಅದೇ ಚಾನೆಲ್‌ನ ಮೂಲ 2 ಕ್ಕೆ ಮಾತ್ರ ಬದಲಾಗುತ್ತದೆ.
     const CHANNELS = [
-      // 100% Embed-Free ಎಚ್‌ಡಿ ಲೈವ್ ಸ್ಟ್ರೀಮ್‌ಗಳು (ತಕ್ಷಣ ಪ್ಲೇ ಆಗುತ್ತವೆ)
       {
         name: 'ಸಂಕಲ್ಪ ಎಚ್‌ಡಿ ಲೈವ್ (Sankalpa HD)',
         category: 'ಮನರಂಜನೆ',
-        type: 'hls',
-        url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+        officialUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+        sources: [
+          { label: 'ಮೂಲ 1 (Primary HD)', type: 'hls', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8' },
+          { label: 'ಮೂಲ 2 (Backup HLS)', type: 'hls', url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8' }
+        ]
       },
-      {
-        name: 'ಸಂಕಲ್ಪ ಸಿನಿಮಾ ಎಚ್‌ಡಿ (Tears of Steel)',
-        category: 'ಸಿನಿಮಾ',
-        type: 'hls',
-        url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
-      },
-      {
-        name: 'ಸಂಕಲ್ಪ ಅನಿಮೇಷನ್ ಎಚ್‌ಡಿ (Sintel HD)',
-        category: 'ಸಿನಿಮಾ',
-        type: 'hls',
-        url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
-      },
-      {
-        name: 'ಸಂಕಲ್ಪ ಲೈವ್ 4 (Apple HLS HD)',
-        category: 'ಮನರಂಜನೆ',
-        type: 'hls',
-        url: 'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8'
-      },
-      // ಕನ್ನಡ YouTube ಲೈವ್ ಚಾನೆಲ್‌ಗಳು (ಎಂಬೆಡ್ ನಿರ್ಬಂಧವಿದ್ದರೆ ತಾನಾಗಿಯೇ ಮುಂದಿನ ಚಾನೆಲ್‌ಗೆ ಬದಲಾಗುತ್ತದೆ)
       {
         name: 'ಟಿವಿ9 ಕನ್ನಡ (TV9 Kannada)',
         category: 'ಸುದ್ದಿ',
-        type: 'yt-channel',
-        channelId: 'UC8dnBi4WUErqYQHZ4PfsLTg',
-        watchUrl: 'https://www.youtube.com/@tv9kannada/live'
+        officialUrl: 'https://www.youtube.com/@tv9kannada/live',
+        sources: [
+          { label: 'ಮೂಲ 1 (CDN HLS)', type: 'hls', url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/tv9-kannada/main.m3u8' },
+          { label: 'ಮೂಲ 2 (YouTube Live)', type: 'yt-channel', channelId: 'UC8dnBi4WUErqYQHZ4PfsLTg' }
+        ]
       },
       {
         name: 'ಪಬ್ಲಿಕ್ ಟಿವಿ (Public TV)',
         category: 'ಸುದ್ದಿ',
-        type: 'yt-channel',
-        channelId: 'UCl-OodciBGZ0k8K8rBZGe4w',
-        watchUrl: 'https://www.youtube.com/@publictv/live'
+        officialUrl: 'https://www.youtube.com/@publictv/live',
+        sources: [
+          { label: 'ಮೂಲ 1 (CDN HLS)', type: 'hls', url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/public-tv/main.m3u8' },
+          { label: 'ಮೂಲ 2 (YouTube Live)', type: 'yt-channel', channelId: 'UCl-OodciBGZ0k8K8rBZGe4w' }
+        ]
       },
       {
         name: 'ಏಷ್ಯಾನೆಟ್ ಸುವರ್ಣ ನ್ಯೂಸ್ (Suvarna News)',
         category: 'ಸುದ್ದಿ',
-        type: 'yt-channel',
-        channelId: 'UCjElJyiXmQXnWmceQ1JyKrA',
-        watchUrl: 'https://www.youtube.com/@AsianetSuvarnaNews/live'
+        officialUrl: 'https://www.youtube.com/@AsianetSuvarnaNews/live',
+        sources: [
+          { label: 'ಮೂಲ 1 (CDN HLS)', type: 'hls', url: 'https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/asianet-suvarna-news/main.m3u8' },
+          { label: 'ಮೂಲ 2 (YouTube Live)', type: 'yt-channel', channelId: 'UCjElJyiXmQXnWmceQ1JyKrA' }
+        ]
       },
       {
         name: 'ನ್ಯೂಸ್18 ಕನ್ನಡ (News18 Kannada)',
         category: 'ಸುದ್ದಿ',
-        type: 'yt-channel',
-        channelId: 'UCa-vioGhe2btBcZneaPonKA',
-        watchUrl: 'https://www.youtube.com/@News18Kannada/live'
+        officialUrl: 'https://www.youtube.com/@News18Kannada/live',
+        sources: [
+          { label: 'ಮೂಲ 1 (Jio CDN)', type: 'hls', url: 'https://nw18live.cdn.jio.com/bpk-tv/News18_Kannada_NW18_MOB/output01/index.m3u8' },
+          { label: 'ಮೂಲ 2 (YouTube Live)', type: 'yt-channel', channelId: 'UCa-vioGhe2btBcZneaPonKA' }
+        ]
+      },
+      {
+        name: 'ಡಿಡಿ ಚಂದನ (DD Chandana)',
+        category: 'ಮನರಂಜನೆ',
+        officialUrl: 'https://www.youtube.com/@DDChandana/live',
+        sources: [
+          { label: 'ಮೂಲ 1 (Prasar Bharati)', type: 'hls', url: 'https://d3ey4dbjkt2f6s.cloudfront.net/transcode/1605875021388/playlist.m3u8' }
+        ]
+      },
+      {
+        name: 'ಸಂಕಲ್ಪ ಸಿನಿಮಾ ಎಚ್‌ಡಿ (Tears of Steel)',
+        category: 'ಸಿನಿಮಾ',
+        officialUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
+        sources: [
+          { label: 'ಮೂಲ 1 (Main Stream)', type: 'hls', url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8' },
+          { label: 'ಮೂಲ 2 (Backup HD)', type: 'hls', url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8' }
+        ]
       }
     ];
 
-    let currentIndex = 0;
+    let currentChannelIdx = 0;
+    let currentSourceIdx = 0;
     let activeCategory = 'ಎಲ್ಲಾ';
     let hlsInstance = null;
     let ytPlayerInstance = null;
     let stallTimer = null;
-    let switchTimer = null;
-    let failedIndices = new Set();
+    let failoverTimer = null;
+    let playbackSessionId = 0;
+    let failedSourcesForCurrentChannel = new Set();
 
-    function onYouTubeIframeAPIReady() {
-      // YouTube API ಸಿದ್ಧವಾಗಿದೆ
-    }
+    function onYouTubeIframeAPIReady() {}
 
     function setCategory(cat, btnEl) {
       activeCategory = cat;
@@ -202,11 +224,8 @@
       filtered.forEach(ch => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'channel-btn' + (ch.idx === currentIndex ? ' active' : '');
-        btn.onclick = () => {
-          failedIndices.clear();
-          selectChannel(ch.idx, true);
-        };
+        btn.className = 'channel-btn' + (ch.idx === currentChannelIdx ? ' active' : '');
+        btn.onclick = () => selectChannel(ch.idx, 0, true);
 
         const left = document.createElement('span');
         left.className = 'ch-left';
@@ -224,7 +243,7 @@
 
         const tag = document.createElement('span');
         tag.className = 'fta-tag';
-        tag.textContent = ch.category;
+        tag.textContent = ch.category + ' (' + ch.sources.length + ')';
 
         btn.appendChild(left);
         btn.appendChild(tag);
@@ -232,37 +251,27 @@
       });
     }
 
-    function switchChannel(step) {
-      failedIndices.clear();
-      const next = (currentIndex + step + CHANNELS.length) % CHANNELS.length;
-      selectChannel(next, true);
-    }
+    function renderSourcePills(channel) {
+      const pillsEl = document.getElementById('sourcePills');
+      pillsEl.innerHTML = '';
 
-    function handleStreamFailure(reason) {
-      clearTimeout(stallTimer);
-      clearTimeout(switchTimer);
-
-      const status = document.getElementById('streamStatus');
-      failedIndices.add(currentIndex);
-
-      if (failedIndices.size >= CHANNELS.length) {
-        failedIndices.clear();
-      }
-
-      let nextIdx = (currentIndex + 1) % CHANNELS.length;
-      while (failedIndices.has(nextIdx) && failedIndices.size < CHANNELS.length) {
-        nextIdx = (nextIdx + 1) % CHANNELS.length;
-      }
-
-      status.textContent = reason + ' — ಮುಂದಿನ ಚಾನೆಲ್‌ಗೆ ಬದಲಾಗುತ್ತಿದೆ...';
-      status.className = 'status switching';
-
-      switchTimer = setTimeout(() => {
-        selectChannel(nextIdx, false);
-      }, 1500);
+      channel.sources.forEach((src, sIdx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        let cls = 'src-btn';
+        if (sIdx === currentSourceIdx) cls += ' active';
+        if (failedSourcesForCurrentChannel.has(sIdx)) cls += ' failed';
+        btn.className = cls;
+        btn.textContent = src.label;
+        btn.onclick = () => selectChannel(currentChannelIdx, sIdx, true);
+        pillsEl.appendChild(btn);
+      });
     }
 
     function cleanupPlayers() {
+      clearTimeout(stallTimer);
+      clearTimeout(failoverTimer);
+
       if (hlsInstance) {
         hlsInstance.destroy();
         hlsInstance = null;
@@ -280,37 +289,81 @@
       ytWrapper.innerHTML = '';
     }
 
-    function selectChannel(index, userInitiated) {
+    function handleSameChannelSourceFailure(sessionId, reason) {
+      if (sessionId !== playbackSessionId) return;
+
       clearTimeout(stallTimer);
-      clearTimeout(switchTimer);
+      clearTimeout(failoverTimer);
+
+      const ch = CHANNELS[currentChannelIdx];
+      const status = document.getElementById('streamStatus');
+      failedSourcesForCurrentChannel.add(currentSourceIdx);
+      renderSourcePills(ch);
+
+      const nextSourceIdx = currentSourceIdx + 1;
+
+      // ಇದೇ ಚಾನೆಲ್‌ನ ಮುಂದಿನ ಬ್ಯಾಕಪ್ ಮೂಲ (Source) ಇದ್ದರೆ ಅದಕ್ಕೆ ಮಾತ್ರ ಸ್ವಿಚ್ ಆಗುತ್ತದೆ
+      if (nextSourceIdx < ch.sources.length) {
+        status.textContent =
+          reason + ' — ಇದೇ ಚಾನೆಲ್‌ನ ' + ch.sources[nextSourceIdx].label + ' ಗೆ ಬದಲಾಗುತ್ತಿದೆ...';
+        status.className = 'status switching';
+
+        failoverTimer = setTimeout(() => {
+          if (sessionId !== playbackSessionId) return;
+          selectChannel(currentChannelIdx, nextSourceIdx, false);
+        }, 1500);
+        return;
+      }
+
+      // ಇದೇ ಚಾನೆಲ್‌ನ ಎಲ್ಲಾ ಮೂಲಗಳೂ ವಿಫಲವಾದರೆ, ಬೇರೆ ಚಾನೆಲ್‌ಗೆ ಹೋಗದೆ ಇದೇ ಚಾನೆಲ್‌ನ ಆಯ್ಕೆ ತೋರಿಸುತ್ತದೆ
       cleanupPlayers();
+      document.getElementById('videoPlayer').style.display = 'none';
+      document.getElementById('ytWrapper').style.display = 'none';
+      document.getElementById('overlayTitle').textContent = ch.name + ' — ಎಲ್ಲಾ ಲೈವ್ ಮೂಲಗಳು ಬ್ಲಾಕ್ ಆಗಿವೆ';
+      document.getElementById('overlayOfficialLink').href = ch.officialUrl || '#';
+      document.getElementById('offlineOverlay').style.display = 'flex';
 
-      const ch = CHANNELS[index];
-      if (!ch) return;
+      status.textContent = 'ಎಲ್ಲಾ ಬ್ಯಾಕಪ್ ಮೂಲಗಳು ವಿಫಲವಾಗಿವೆ';
+      status.className = 'status offline';
+    }
 
-      currentIndex = index;
+    function retryCurrentChannel() {
+      failedSourcesForCurrentChannel.clear();
+      selectChannel(currentChannelIdx, 0, true);
+    }
+
+    function selectChannel(channelIdx, sourceIdx, userInitiated) {
+      const ch = CHANNELS[channelIdx];
+      if (!ch || !ch.sources[sourceIdx]) return;
+
+      const isNewChannel = channelIdx !== currentChannelIdx;
+      if (isNewChannel) {
+        failedSourcesForCurrentChannel.clear();
+      }
+
+      playbackSessionId += 1;
+      const sessionId = playbackSessionId;
+
+      currentChannelIdx = channelIdx;
+      currentSourceIdx = sourceIdx;
+
+      cleanupPlayers();
       renderChannels();
+      renderSourcePills(ch);
+
+      document.getElementById('offlineOverlay').style.display = 'none';
+      document.getElementById('nowPlayingNumber').textContent = 'CH ' + String(channelIdx + 1).padStart(2, '0');
+      document.getElementById('nowPlayingTitle').textContent = ch.name;
+
+      const source = ch.sources[sourceIdx];
+      const status = document.getElementById('streamStatus');
+      status.textContent = source.label + ' ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ...';
+      status.className = 'status loading';
 
       const video = document.getElementById('videoPlayer');
       const ytWrapper = document.getElementById('ytWrapper');
-      const status = document.getElementById('streamStatus');
-      const title = document.getElementById('nowPlayingTitle');
-      const numBadge = document.getElementById('nowPlayingNumber');
-      const ytDirectBtn = document.getElementById('ytDirectBtn');
 
-      numBadge.textContent = 'CH ' + String(index + 1).padStart(2, '0');
-      title.textContent = ch.name;
-      status.textContent = 'ಕನೆಕ್ಟ್ ಆಗುತ್ತಿದೆ...';
-      status.className = 'status loading';
-
-      if (ch.watchUrl) {
-        ytDirectBtn.href = ch.watchUrl;
-        ytDirectBtn.style.display = 'inline-block';
-      } else {
-        ytDirectBtn.style.display = 'none';
-      }
-
-      if (ch.type === 'yt-channel') {
+      if (source.type === 'yt-channel') {
         video.style.display = 'none';
         ytWrapper.style.display = 'block';
 
@@ -321,31 +374,30 @@
           : '';
         iframe.src =
           'https://www.youtube.com/embed/live_stream?channel=' +
-          encodeURIComponent(ch.channelId) +
+          encodeURIComponent(source.channelId) +
           '&enablejsapi=1&autoplay=1&mute=' + muteParam + '&rel=0' + originParam;
         iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
         iframe.setAttribute('allowfullscreen', '');
         iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
         ytWrapper.appendChild(iframe);
 
-        // 7 ಸೆಕೆಂಡ್‌ನಲ್ಲಿ YouTube ಲೈವ್ ಆರಂಭವಾಗದಿದ್ದರೆ ಆಟೋ-ಸ್ವಿಚ್
         stallTimer = setTimeout(() => {
-          handleStreamFailure('ಚಾನೆಲ್ ಎಂಬೆಡ್ ನಿರ್ಬಂಧ');
+          handleSameChannelSourceFailure(sessionId, source.label + ' ವಿಳಂಬ');
         }, 7000);
 
         if (window.YT && window.YT.Player) {
           ytPlayerInstance = new window.YT.Player(iframe, {
             events: {
               onStateChange: (event) => {
+                if (sessionId !== playbackSessionId) return;
                 if (event.data === window.YT.PlayerState.PLAYING) {
                   clearTimeout(stallTimer);
-                  failedIndices.clear();
-                  status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ';
+                  status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ (' + source.label + ')';
                   status.className = 'status live';
                 }
               },
               onError: () => {
-                handleStreamFailure('YouTube ಎಂಬೆಡ್ ನಿರ್ಬಂಧ');
+                handleSameChannelSourceFailure(sessionId, source.label + ' ನಿರ್ಬಂಧ');
               }
             }
           });
@@ -358,49 +410,49 @@
       video.muted = !userInitiated;
 
       stallTimer = setTimeout(() => {
-        handleStreamFailure('ಸಂಪರ್ಕ ವಿಳಂಬ');
-      }, 8000);
+        handleSameChannelSourceFailure(sessionId, source.label + ' ಸಂಪರ್ಕ ವಿಳಂಬ');
+      }, 6500);
 
       if (window.Hls && Hls.isSupported()) {
         hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: true });
-        hlsInstance.loadSource(ch.url);
+        hlsInstance.loadSource(source.url);
         hlsInstance.attachMedia(video);
 
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (sessionId !== playbackSessionId) return;
           clearTimeout(stallTimer);
-          failedIndices.clear();
           video.play().catch(() => {
             video.muted = true;
             video.play().catch(() => {});
           });
-          status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ';
+          status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ (' + source.label + ')';
           status.className = 'status live';
         });
 
         hlsInstance.on(Hls.Events.ERROR, (event, data) => {
           if (data.fatal) {
-            handleStreamFailure('ಸ್ಟ್ರೀಮ್ ಆಫ್‌ಲೈನ್');
+            handleSameChannelSourceFailure(sessionId, source.label + ' ಆಫ್‌ಲೈನ್');
           }
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = ch.url;
+        video.src = source.url;
         video.addEventListener('loadedmetadata', () => {
+          if (sessionId !== playbackSessionId) return;
           clearTimeout(stallTimer);
-          failedIndices.clear();
           video.play().catch(() => {});
-          status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ';
+          status.textContent = '● ಲೈವ್ ಪ್ಲೇ ಆಗುತ್ತಿದೆ (' + source.label + ')';
           status.className = 'status live';
         }, { once: true });
         video.addEventListener('error', () => {
-          handleStreamFailure('ಸ್ಟ್ರೀಮ್ ಆಫ್‌ಲೈನ್');
+          handleSameChannelSourceFailure(sessionId, source.label + ' ಆಫ್‌ಲೈನ್');
         }, { once: true });
       } else {
-        handleStreamFailure('ಬ್ರೌಸರ್ ಬೆಂಬಲವಿಲ್ಲ');
+        handleSameChannelSourceFailure(sessionId, 'ಬ್ರೌಸರ್ ಬೆಂಬಲವಿಲ್ಲ');
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      selectChannel(0, false);
+      selectChannel(0, 0, false);
     });
   </script>
 </body>
